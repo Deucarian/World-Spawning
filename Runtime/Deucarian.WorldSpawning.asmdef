@@ -1,0 +1,17 @@
+{
+  "name": "Deucarian.WorldSpawning",
+  "rootNamespace": "Deucarian.WorldSpawning",
+  "references": [
+    "Deucarian.GameplayFoundation",
+    "Deucarian.Encounters"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

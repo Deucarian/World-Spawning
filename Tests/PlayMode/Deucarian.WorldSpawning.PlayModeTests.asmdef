@@ -1,0 +1,23 @@
+{
+  "name": "Deucarian.WorldSpawning.PlayModeTests",
+  "rootNamespace": "Deucarian.WorldSpawning.Tests",
+  "references": [
+    "Deucarian.WorldSpawning",
+    "Deucarian.Encounters",
+    "Deucarian.GameplayFoundation"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [
+    "UNITY_INCLUDE_TESTS"
+  ],
+  "versionDefines": [],
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ],
+  "noEngineReferences": false
+}
