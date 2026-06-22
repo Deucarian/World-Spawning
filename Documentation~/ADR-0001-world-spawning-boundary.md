@@ -2,13 +2,13 @@
 
 ## Status
 
-Accepted for 0.1.0.
+Accepted for 0.2.0.
 
 ## Decision
 
-`com.deucarian.world-spawning` is a Unity-specific adapter package that consumes abstract encounter `SpawnRequest` values and turns them into runtime `GameObject` instances through explicit prefab providers, spawn-pose resolvers, and bounded pools.
+`com.deucarian.world-spawning` is a Unity-specific package that consumes generic `WorldSpawnRequest` values and turns them into runtime `GameObject` instances through explicit prefab providers, spawn-pose resolvers, and bounded pools.
 
-It depends on `com.deucarian.gameplay-foundation` and `com.deucarian.encounters`. It does not depend on Combat, Progression, Persistence, UI packages, Core State, or Unity.Entities.
+It depends on `com.deucarian.gameplay-foundation`. It does not depend on Encounters, Combat, Progression, Persistence, UI packages, Core State, or Unity.Entities.
 
 ## Package Boundary
 
@@ -18,7 +18,7 @@ It does not own encounter scheduling, wave logic, combat damage, health, movemen
 
 ## Separation From Encounters
 
-Encounters remains pure C# and emits data-only `SpawnRequest` records. World Spawning consumes those records at the Unity edge where GameObjects, prefabs, transforms, and scene roots exist. This keeps encounter simulation testable without a scene while allowing Unity object lifecycle to evolve independently.
+Encounters remains pure C# and emits data-only `SpawnRequest` records. Application, Defense Games, or test adapters convert those records into generic `WorldSpawnRequest` values before calling World Spawning. This keeps encounter simulation testable without a scene while allowing Unity object lifecycle to evolve independently.
 
 ## Separation From Combat
 
@@ -26,7 +26,7 @@ Spawning creates and tracks objects; it does not decide whether they are alive, 
 
 ## Prefab And Provider Strategy
 
-`SpawnableCatalog` maps `SpawnableId` to `SpawnableDefinition`. A definition holds an `ISpawnPrefabProvider`, initial capacity, maximum capacity, and an optional pool root name. The default provider is `GameObjectPrefabProvider`, but tests and products can supply custom providers.
+`SpawnableCatalog` maps `WorldSpawnableId` to `SpawnableDefinition`. A definition holds an `ISpawnPrefabProvider`, initial capacity, maximum capacity, and an optional pool root name. The default provider is `GameObjectPrefabProvider`, but tests and products can supply custom providers.
 
 ## Pooling Strategy
 
@@ -38,7 +38,7 @@ Hot flow after warmup performs no direct `Instantiate` or `Destroy`. `Clear` may
 
 Placement remains abstract:
 
-`SpawnChannelId -> ISpawnPoseResolver -> SpawnPose`
+`WorldSpawnChannelId -> ISpawnPoseResolver -> SpawnPose`
 
 The package does not hard-code radial, lane, grid, path-node, perimeter, or center-core rules. Idle Auto Defense and classic Tower Defense provide resolvers through adapters or samples.
 

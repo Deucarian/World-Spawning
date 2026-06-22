@@ -14,10 +14,12 @@ namespace Deucarian.WorldSpawning.Tests
         private static readonly EncounterId Encounter = new EncounterId("encounter.test");
         private static readonly WaveId Wave = new WaveId("wave.test");
         private static readonly SpawnGroupId Group = new SpawnGroupId("group.test");
-        private static readonly SpawnChannelId ChannelA = new SpawnChannelId("channel.a");
-        private static readonly SpawnChannelId ChannelB = new SpawnChannelId("channel.b");
-        private static readonly SpawnableId EnemyA = new SpawnableId("enemy.a");
-        private static readonly SpawnableId EnemyB = new SpawnableId("enemy.b");
+        private static readonly Deucarian.Encounters.SpawnableId EncounterEnemyA = new Deucarian.Encounters.SpawnableId("enemy.a");
+        private static readonly Deucarian.Encounters.SpawnChannelId EncounterChannelA = new Deucarian.Encounters.SpawnChannelId("channel.a");
+        private static readonly WorldSpawnChannelId ChannelA = new WorldSpawnChannelId("channel.a");
+        private static readonly WorldSpawnChannelId ChannelB = new WorldSpawnChannelId("channel.b");
+        private static readonly WorldSpawnableId EnemyA = new WorldSpawnableId("enemy.a");
+        private static readonly WorldSpawnableId EnemyB = new WorldSpawnableId("enemy.b");
 
         [Test]
         public void CatalogValidation_RejectsInvalidDefinitions()
@@ -40,7 +42,7 @@ namespace Deucarian.WorldSpawning.Tests
             {
                 Assert.AreEqual(SpawnFailureReason.UnknownSpawnable, service.Spawn(Request(EnemyB)).FailureReason);
                 Assert.AreEqual(SpawnFailureReason.InvalidRequest, service.Spawn(default).FailureReason);
-                Assert.AreEqual(SpawnFailureReason.PoseResolutionFailed, service.Spawn(Request(EnemyA, new SpawnChannelId("channel.missing"))).FailureReason);
+                Assert.AreEqual(SpawnFailureReason.PoseResolutionFailed, service.Spawn(Request(EnemyA, new WorldSpawnChannelId("channel.missing"))).FailureReason);
                 SpawnResult first = service.Spawn(Request(EnemyA));
                 Assert.IsTrue(first.Succeeded);
                 Assert.AreEqual(SpawnFailureReason.CapacityExhausted, service.Spawn(Request(EnemyA, ChannelA, 2)).FailureReason);
@@ -90,7 +92,7 @@ namespace Deucarian.WorldSpawning.Tests
             try
             {
                 service.Warmup();
-                SpawnRequest[] requests =
+                WorldSpawnRequest[] requests =
                 {
                     Request(EnemyB, ChannelB, 20),
                     Request(EnemyA, ChannelA, 10),
@@ -138,21 +140,29 @@ namespace Deucarian.WorldSpawning.Tests
             EncounterRuntime encounter = new EncounterRuntime(new EncounterDefinition(
                 Encounter,
                 Array.Empty<WeightedSpawnTableDefinition>(),
-                new[] { new WaveDefinition(Wave, 0, new[] { SpawnGroupDefinition.Fixed(Group, EnemyA, 2, 2, 0, 1, ChannelA) }) },
+                new[] { new WaveDefinition(Wave, 0, new[] { SpawnGroupDefinition.Fixed(Group, EncounterEnemyA, 2, 2, 0, 1, EncounterChannelA) }) },
                 new[] { ObjectiveDefinition.AllWavesEmitted(new EncounterObjectiveId("objective.emitted")) }));
             try
             {
                 service.Warmup();
                 encounter.Start();
                 encounter.AdvanceTicks(1);
-                SpawnRequest[] buffer = new SpawnRequest[4];
-                int count = encounter.DrainSpawnRequests(buffer).Written;
+                Deucarian.Encounters.SpawnRequest[] encounterBuffer = new Deucarian.Encounters.SpawnRequest[4];
+                int count = encounter.DrainSpawnRequests(encounterBuffer).Written;
+                WorldSpawnRequest[] buffer = new WorldSpawnRequest[4];
+                var adapter = new EncounterSpawnRequestAdapter();
+                for (int i = 0; i < count; i++) buffer[i] = adapter.Convert(encounterBuffer[i]);
                 SpawnResult[] results = new SpawnResult[4];
                 service.SpawnMany(buffer, count, results);
                 int externalActiveMetric = service.ActiveCount;
                 Assert.AreEqual(2, externalActiveMetric);
                 Assert.AreEqual(EncounterLifecycleState.Completed, encounter.State);
                 Assert.AreEqual(Vector3.right, results[0].Instance.transform.position);
+                Assert.AreEqual(Wave.Value, results[0].Request.Context.WaveId);
+                Assert.AreEqual(Group.Value, results[0].Request.Context.GroupId);
+                Assert.AreEqual(0, results[0].Request.Context.GroupIndex);
+                Assert.AreEqual(encounterBuffer[0].Sequence, results[0].Request.Sequence);
+                Assert.AreEqual(0, results[0].Request.Context.Tick);
             }
             finally { service.Dispose(); UnityEngine.Object.DestroyImmediate(prefab); }
         }
@@ -161,31 +171,31 @@ namespace Deucarian.WorldSpawning.Tests
         public void DonorIdleAndTowerDefenseProofs_MapThroughResolversAndProviders()
         {
             GameObject donorPrefab = Prefab("donor-ghoul-prefab");
-            WorldSpawnService donorService = Service(new[] { Def(new SpawnableId("enemy.ghoul-runner"), donorPrefab, 1, 2) });
+            WorldSpawnService donorService = Service(new[] { Def(new WorldSpawnableId("enemy.ghoul-runner"), donorPrefab, 1, 2) });
             try
             {
-                SpawnResult donor = donorService.Spawn(Request(new SpawnableId("enemy.ghoul-runner"), ChannelA));
+                SpawnResult donor = donorService.Spawn(Request(new WorldSpawnableId("enemy.ghoul-runner"), ChannelA));
                 Assert.IsTrue(donor.Succeeded);
                 Assert.IsTrue(donorService.Despawn(donor.InstanceId, DespawnReason.OutOfBounds).Succeeded);
             }
             finally { donorService.Dispose(); UnityEngine.Object.DestroyImmediate(donorPrefab); }
 
             GameObject idlePrefab = Prefab("idle-raider");
-            WorldSpawnService idle = Service(new[] { Def(new SpawnableId("raider.basic"), idlePrefab, 1, 2) }, new Dictionary<SpawnChannelId, SpawnPose>
+            WorldSpawnService idle = Service(new[] { Def(new WorldSpawnableId("raider.basic"), idlePrefab, 1, 2) }, new Dictionary<WorldSpawnChannelId, SpawnPose>
             {
-                [new SpawnChannelId("perimeter-north")] = new SpawnPose(new Vector3(0, 0, 10), Quaternion.identity),
-                [new SpawnChannelId("perimeter-random")] = new SpawnPose(new Vector3(3, 0, 8), Quaternion.identity)
+                [new WorldSpawnChannelId("perimeter-north")] = new SpawnPose(new Vector3(0, 0, 10), Quaternion.identity),
+                [new WorldSpawnChannelId("perimeter-random")] = new SpawnPose(new Vector3(3, 0, 8), Quaternion.identity)
             });
-            try { Assert.IsTrue(idle.Spawn(Request(new SpawnableId("raider.basic"), new SpawnChannelId("perimeter-north"))).Succeeded); }
+            try { Assert.IsTrue(idle.Spawn(Request(new WorldSpawnableId("raider.basic"), new WorldSpawnChannelId("perimeter-north"))).Succeeded); }
             finally { idle.Dispose(); UnityEngine.Object.DestroyImmediate(idlePrefab); }
 
             GameObject tdPrefab = Prefab("tower-creep");
-            WorldSpawnService td = Service(new[] { Def(new SpawnableId("creep.light"), tdPrefab, 1, 2) }, new Dictionary<SpawnChannelId, SpawnPose>
+            WorldSpawnService td = Service(new[] { Def(new WorldSpawnableId("creep.light"), tdPrefab, 1, 2) }, new Dictionary<WorldSpawnChannelId, SpawnPose>
             {
-                [new SpawnChannelId("lane-a-entry")] = new SpawnPose(new Vector3(-5, 0, 0), Quaternion.identity),
-                [new SpawnChannelId("lane-b-entry")] = new SpawnPose(new Vector3(5, 0, 0), Quaternion.identity)
+                [new WorldSpawnChannelId("lane-a-entry")] = new SpawnPose(new Vector3(-5, 0, 0), Quaternion.identity),
+                [new WorldSpawnChannelId("lane-b-entry")] = new SpawnPose(new Vector3(5, 0, 0), Quaternion.identity)
             });
-            try { Assert.AreEqual(-5f, td.Spawn(Request(new SpawnableId("creep.light"), new SpawnChannelId("lane-a-entry"))).Instance.transform.position.x); }
+            try { Assert.AreEqual(-5f, td.Spawn(Request(new WorldSpawnableId("creep.light"), new WorldSpawnChannelId("lane-a-entry"))).Instance.transform.position.x); }
             finally { td.Dispose(); UnityEngine.Object.DestroyImmediate(tdPrefab); }
         }
 
@@ -229,7 +239,7 @@ namespace Deucarian.WorldSpawning.Tests
             try
             {
                 service.Warmup();
-                SpawnRequest request = Request(EnemyA);
+                WorldSpawnRequest request = Request(EnemyA);
                 long beforeBytes = GC.GetAllocatedBytesForCurrentThread();
                 Stopwatch stopwatch = Stopwatch.StartNew();
                 for (int i = 0; i < count; i++)
@@ -268,9 +278,9 @@ namespace Deucarian.WorldSpawning.Tests
             return builder.ToString();
         }
 
-        private static WorldSpawnService Service(IReadOnlyList<SpawnableDefinition> definitions, IReadOnlyDictionary<SpawnChannelId, SpawnPose> poses = null)
+        private static WorldSpawnService Service(IReadOnlyList<SpawnableDefinition> definitions, IReadOnlyDictionary<WorldSpawnChannelId, SpawnPose> poses = null)
         {
-            poses ??= new Dictionary<SpawnChannelId, SpawnPose>
+            poses ??= new Dictionary<WorldSpawnChannelId, SpawnPose>
             {
                 [ChannelA] = new SpawnPose(Vector3.right, Quaternion.identity),
                 [ChannelB] = new SpawnPose(Vector3.left, Quaternion.identity)
@@ -278,15 +288,15 @@ namespace Deucarian.WorldSpawning.Tests
             return new WorldSpawnService(new SpawnableCatalog(definitions), new ChannelPoseResolver(poses));
         }
 
-        private static SpawnableDefinition Def(SpawnableId id, GameObject prefab, int initial = 0, int max = 8)
+        private static SpawnableDefinition Def(WorldSpawnableId id, GameObject prefab, int initial = 0, int max = 8)
         {
             return new SpawnableDefinition(id, new GameObjectPrefabProvider(prefab), initial, max);
         }
 
-        private static SpawnRequest Request(SpawnableId id, SpawnChannelId channel = default, long sequence = 1)
+        private static WorldSpawnRequest Request(WorldSpawnableId id, WorldSpawnChannelId channel = default, long sequence = 1)
         {
             if (channel.IsEmpty) channel = ChannelA;
-            return new SpawnRequest(Encounter, Wave, Group, id, channel, 0, sequence, 0, sequence);
+            return new WorldSpawnRequest(id, channel, sequence, new WorldSpawnRequestContext("test", Encounter.Value, Wave.Value, Group.Value, 0, (int)sequence));
         }
 
         private static GameObject Prefab(string name)
@@ -313,5 +323,17 @@ namespace Deucarian.WorldSpawning.Tests
         public void OnWorldSpawned(WorldSpawnContext context) { SpawnedCount++; }
         public void OnWorldDespawned(DespawnReason reason) { DespawnedCount++; }
         public void ResetForWorldSpawn() { ResetCount++; }
+    }
+
+    public sealed class EncounterSpawnRequestAdapter : IWorldSpawnRequestAdapter<Deucarian.Encounters.SpawnRequest>
+    {
+        public WorldSpawnRequest Convert(Deucarian.Encounters.SpawnRequest source)
+        {
+            return new WorldSpawnRequest(
+                new WorldSpawnableId(source.SpawnableId.Value),
+                new WorldSpawnChannelId(source.ChannelId.Value),
+                source.Sequence,
+                new WorldSpawnRequestContext("encounters", source.EncounterId.Value, source.WaveId.Value, source.GroupId.Value, 0, (int)source.ScheduledTick));
+        }
     }
 }

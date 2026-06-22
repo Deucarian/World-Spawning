@@ -1,21 +1,20 @@
 {
   "name": "com.deucarian.world-spawning",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "displayName": "Deucarian World Spawning",
-  "description": "Unity GameObject spawning adapter for Encounters spawn requests, prefab providers, pose resolvers, pooling, lifecycle, and diagnostics snapshots.",
+  "description": "Generic Unity GameObject spawning for world spawn requests, prefab providers, pose resolvers, pooling, lifecycle, and diagnostics snapshots.",
   "unity": "6000.3",
   "author": {
     "name": "Deucarian"
   },
   "license": "MIT",
   "dependencies": {
-    "com.deucarian.gameplay-foundation": "0.1.0",
-    "com.deucarian.encounters": "0.1.0"
+    "com.deucarian.gameplay-foundation": "0.1.0"
   },
   "samples": [
     {
       "displayName": "World Spawning Sandbox",
-      "description": "Small Unity-facing sample showing Encounters requests resolved through channels into pooled GameObjects.",
+      "description": "Small Unity-facing sample showing generic world spawn requests resolved through channels into pooled GameObjects.",
       "path": "Samples~/WorldSpawningSandbox"
     }
   ]

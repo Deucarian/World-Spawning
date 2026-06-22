@@ -2,7 +2,7 @@
 
 Placement is abstract:
 
-`SpawnChannelId -> ISpawnPoseResolver -> SpawnPose`
+`WorldSpawnChannelId -> ISpawnPoseResolver -> SpawnPose`
 
 The default helper `ChannelPoseResolver` maps channels to fixed poses. Products should provide their own resolver for:
 

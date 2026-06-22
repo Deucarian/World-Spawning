@@ -1,6 +1,20 @@
 # Encounter Integration Guide
 
-Encounters emits `SpawnRequest` values with `SpawnableId`, `SpawnChannelId`, sequence, wave, group, and tick metadata.
+Encounters emits `SpawnRequest` values with Encounter-owned `SpawnableId`, `SpawnChannelId`, sequence, wave, group, and scheduled tick metadata. World Spawning consumes `WorldSpawnRequest`, so conversion happens at the composition boundary.
+
+```csharp
+WorldSpawnRequest worldRequest = new WorldSpawnRequest(
+    new WorldSpawnableId(encounterRequest.SpawnableId.Value),
+    new WorldSpawnChannelId(encounterRequest.ChannelId.Value),
+    encounterRequest.Sequence,
+    new WorldSpawnRequestContext(
+        "encounters",
+        encounterRequest.EncounterId.Value,
+        encounterRequest.WaveId.Value,
+        encounterRequest.GroupId.Value,
+        0,
+        (int)encounterRequest.ScheduledTick));
+```
 
 World Spawning consumes those requests:
 

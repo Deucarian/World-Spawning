@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Deucarian.Encounters;
+using Deucarian.GameplayFoundation;
 using UnityEngine;
 
 namespace Deucarian.WorldSpawning
@@ -14,6 +14,63 @@ namespace Deucarian.WorldSpawning
         public override int GetHashCode() => Value.GetHashCode();
         public int CompareTo(SpawnInstanceId other) => Value.CompareTo(other.Value);
         public override string ToString() => Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+    }
+
+    public readonly struct WorldSpawnableId : IEquatable<WorldSpawnableId>, IComparable<WorldSpawnableId>
+    {
+        private readonly ContentId _value;
+        public WorldSpawnableId(string value) { _value = new ContentId(value); }
+        public string Value => _value.Value;
+        public bool IsEmpty => _value.IsEmpty;
+        public bool Equals(WorldSpawnableId other) => _value.Equals(other._value);
+        public override bool Equals(object obj) => obj is WorldSpawnableId other && Equals(other);
+        public override int GetHashCode() => _value.GetHashCode();
+        public int CompareTo(WorldSpawnableId other) => _value.CompareTo(other._value);
+        public override string ToString() => Value;
+    }
+
+    public readonly struct WorldSpawnChannelId : IEquatable<WorldSpawnChannelId>, IComparable<WorldSpawnChannelId>
+    {
+        private readonly ContentId _value;
+        public WorldSpawnChannelId(string value) { _value = new ContentId(value); }
+        public string Value => _value.Value;
+        public bool IsEmpty => _value.IsEmpty;
+        public bool Equals(WorldSpawnChannelId other) => _value.Equals(other._value);
+        public override bool Equals(object obj) => obj is WorldSpawnChannelId other && Equals(other);
+        public override int GetHashCode() => _value.GetHashCode();
+        public int CompareTo(WorldSpawnChannelId other) => _value.CompareTo(other._value);
+        public override string ToString() => Value;
+    }
+
+    public readonly struct WorldSpawnRequestContext
+    {
+        public WorldSpawnRequestContext(string sourceSystem = null, string encounterId = null, string waveId = null, string groupId = null, int groupIndex = 0, int tick = 0)
+        {
+            SourceSystem = sourceSystem ?? string.Empty; EncounterId = encounterId ?? string.Empty; WaveId = waveId ?? string.Empty; GroupId = groupId ?? string.Empty; GroupIndex = groupIndex; Tick = tick;
+        }
+        public string SourceSystem { get; }
+        public string EncounterId { get; }
+        public string WaveId { get; }
+        public string GroupId { get; }
+        public int GroupIndex { get; }
+        public int Tick { get; }
+    }
+
+    public readonly struct WorldSpawnRequest
+    {
+        public WorldSpawnRequest(WorldSpawnableId spawnableId, WorldSpawnChannelId channelId, long sequence, WorldSpawnRequestContext context = default)
+        {
+            SpawnableId = spawnableId; ChannelId = channelId; Sequence = sequence; Context = context;
+        }
+        public WorldSpawnableId SpawnableId { get; }
+        public WorldSpawnChannelId ChannelId { get; }
+        public long Sequence { get; }
+        public WorldSpawnRequestContext Context { get; }
+    }
+
+    public interface IWorldSpawnRequestAdapter<in TSource>
+    {
+        WorldSpawnRequest Convert(TSource source);
     }
 
     public readonly struct SpawnPose
@@ -43,19 +100,19 @@ namespace Deucarian.WorldSpawning
 
     public interface ISpawnPoseResolver
     {
-        SpawnPoseResult TryResolvePose(SpawnRequest request);
+        SpawnPoseResult TryResolvePose(WorldSpawnRequest request);
     }
 
     public interface ISpawnPrefabProvider
     {
-        GameObject GetPrefab(SpawnableId spawnableId);
+        GameObject GetPrefab(WorldSpawnableId spawnableId);
     }
 
     public sealed class GameObjectPrefabProvider : ISpawnPrefabProvider
     {
         private readonly GameObject _prefab;
         public GameObjectPrefabProvider(GameObject prefab) { _prefab = prefab; }
-        public GameObject GetPrefab(SpawnableId spawnableId) => _prefab;
+        public GameObject GetPrefab(WorldSpawnableId spawnableId) => _prefab;
     }
 
     public interface IWorldSpawnedObject
@@ -71,25 +128,25 @@ namespace Deucarian.WorldSpawning
 
     public readonly struct WorldSpawnContext
     {
-        public WorldSpawnContext(SpawnInstanceId instanceId, SpawnRequest request, SpawnPose pose)
+        public WorldSpawnContext(SpawnInstanceId instanceId, WorldSpawnRequest request, SpawnPose pose)
         {
             InstanceId = instanceId; Request = request; Pose = pose;
         }
         public SpawnInstanceId InstanceId { get; }
-        public SpawnRequest Request { get; }
+        public WorldSpawnRequest Request { get; }
         public SpawnPose Pose { get; }
     }
 
     public sealed class SpawnableDefinition
     {
-        public SpawnableDefinition(SpawnableId id, ISpawnPrefabProvider prefabProvider, int initialCapacity = 0, int maximumCapacity = 64, string poolRootName = null)
+        public SpawnableDefinition(WorldSpawnableId id, ISpawnPrefabProvider prefabProvider, int initialCapacity = 0, int maximumCapacity = 64, string poolRootName = null)
         {
             if (id.IsEmpty) throw new ArgumentException("Spawnable id cannot be empty.", nameof(id));
             if (initialCapacity < 0) throw new ArgumentOutOfRangeException(nameof(initialCapacity));
             if (maximumCapacity <= 0 || maximumCapacity < initialCapacity) throw new ArgumentOutOfRangeException(nameof(maximumCapacity));
             Id = id; PrefabProvider = prefabProvider; InitialCapacity = initialCapacity; MaximumCapacity = maximumCapacity; PoolRootName = string.IsNullOrWhiteSpace(poolRootName) ? id.Value + "-pool" : poolRootName;
         }
-        public SpawnableId Id { get; }
+        public WorldSpawnableId Id { get; }
         public ISpawnPrefabProvider PrefabProvider { get; }
         public int InitialCapacity { get; }
         public int MaximumCapacity { get; }
@@ -98,7 +155,7 @@ namespace Deucarian.WorldSpawning
 
     public sealed class SpawnableCatalog
     {
-        private readonly Dictionary<SpawnableId, SpawnableDefinition> _definitions = new Dictionary<SpawnableId, SpawnableDefinition>();
+        private readonly Dictionary<WorldSpawnableId, SpawnableDefinition> _definitions = new Dictionary<WorldSpawnableId, SpawnableDefinition>();
         public SpawnableCatalog(IReadOnlyList<SpawnableDefinition> definitions)
         {
             if (definitions == null) throw new ArgumentNullException(nameof(definitions));
@@ -109,7 +166,7 @@ namespace Deucarian.WorldSpawning
                 _definitions.Add(definition.Id, definition);
             }
         }
-        public bool TryGet(SpawnableId id, out SpawnableDefinition definition) => _definitions.TryGetValue(id, out definition);
+        public bool TryGet(WorldSpawnableId id, out SpawnableDefinition definition) => _definitions.TryGetValue(id, out definition);
         public SpawnableDefinition[] GetDefinitionsOrdered()
         {
             var result = new SpawnableDefinition[_definitions.Count];
@@ -121,13 +178,13 @@ namespace Deucarian.WorldSpawning
 
     public sealed class ChannelPoseResolver : ISpawnPoseResolver
     {
-        private readonly Dictionary<SpawnChannelId, SpawnPose> _poses = new Dictionary<SpawnChannelId, SpawnPose>();
-        public ChannelPoseResolver(IReadOnlyDictionary<SpawnChannelId, SpawnPose> poses)
+        private readonly Dictionary<WorldSpawnChannelId, SpawnPose> _poses = new Dictionary<WorldSpawnChannelId, SpawnPose>();
+        public ChannelPoseResolver(IReadOnlyDictionary<WorldSpawnChannelId, SpawnPose> poses)
         {
             if (poses == null) throw new ArgumentNullException(nameof(poses));
-            foreach (KeyValuePair<SpawnChannelId, SpawnPose> pair in poses) _poses.Add(pair.Key, pair.Value);
+            foreach (KeyValuePair<WorldSpawnChannelId, SpawnPose> pair in poses) _poses.Add(pair.Key, pair.Value);
         }
-        public SpawnPoseResult TryResolvePose(SpawnRequest request)
+        public SpawnPoseResult TryResolvePose(WorldSpawnRequest request)
         {
             return _poses.TryGetValue(request.ChannelId, out SpawnPose pose)
                 ? SpawnPoseResult.Success(pose)
@@ -137,7 +194,7 @@ namespace Deucarian.WorldSpawning
 
     public readonly struct SpawnResult
     {
-        public SpawnResult(bool succeeded, SpawnFailureReason failureReason, SpawnInstanceId instanceId, GameObject instance, SpawnRequest request, string message = null)
+        public SpawnResult(bool succeeded, SpawnFailureReason failureReason, SpawnInstanceId instanceId, GameObject instance, WorldSpawnRequest request, string message = null)
         {
             Succeeded = succeeded; FailureReason = failureReason; InstanceId = instanceId; Instance = instance; Request = request; Message = message ?? string.Empty;
         }
@@ -145,7 +202,7 @@ namespace Deucarian.WorldSpawning
         public SpawnFailureReason FailureReason { get; }
         public SpawnInstanceId InstanceId { get; }
         public GameObject Instance { get; }
-        public SpawnRequest Request { get; }
+        public WorldSpawnRequest Request { get; }
         public string Message { get; }
     }
 
@@ -165,11 +222,11 @@ namespace Deucarian.WorldSpawning
 
     public readonly struct SpawnPoolSnapshot
     {
-        public SpawnPoolSnapshot(SpawnableId spawnableId, int activeCount, int pooledCount, int totalCount, int maximumCapacity)
+        public SpawnPoolSnapshot(WorldSpawnableId spawnableId, int activeCount, int pooledCount, int totalCount, int maximumCapacity)
         {
             SpawnableId = spawnableId; ActiveCount = activeCount; PooledCount = pooledCount; TotalCount = totalCount; MaximumCapacity = maximumCapacity;
         }
-        public SpawnableId SpawnableId { get; }
+        public WorldSpawnableId SpawnableId { get; }
         public int ActiveCount { get; }
         public int PooledCount { get; }
         public int TotalCount { get; }
@@ -178,13 +235,13 @@ namespace Deucarian.WorldSpawning
 
     public readonly struct ActiveSpawnSnapshot
     {
-        public ActiveSpawnSnapshot(SpawnInstanceId instanceId, SpawnableId spawnableId, SpawnChannelId channelId, long requestSequence)
+        public ActiveSpawnSnapshot(SpawnInstanceId instanceId, WorldSpawnableId spawnableId, WorldSpawnChannelId channelId, long requestSequence)
         {
             InstanceId = instanceId; SpawnableId = spawnableId; ChannelId = channelId; RequestSequence = requestSequence;
         }
         public SpawnInstanceId InstanceId { get; }
-        public SpawnableId SpawnableId { get; }
-        public SpawnChannelId ChannelId { get; }
+        public WorldSpawnableId SpawnableId { get; }
+        public WorldSpawnChannelId ChannelId { get; }
         public long RequestSequence { get; }
     }
 
@@ -210,7 +267,7 @@ namespace Deucarian.WorldSpawning
 
     public sealed class GameObjectWorldSpawnPool : IWorldSpawnPool
     {
-        private readonly Dictionary<SpawnableId, PoolBucket> _buckets = new Dictionary<SpawnableId, PoolBucket>();
+        private readonly Dictionary<WorldSpawnableId, PoolBucket> _buckets = new Dictionary<WorldSpawnableId, PoolBucket>();
         private readonly Dictionary<GameObject, PoolBucket> _bucketByInstance = new Dictionary<GameObject, PoolBucket>();
 
         public void Warmup(SpawnableDefinition definition, Transform poolRoot)
@@ -393,7 +450,7 @@ namespace Deucarian.WorldSpawning
             }
         }
 
-        public SpawnResult Spawn(SpawnRequest request)
+        public SpawnResult Spawn(WorldSpawnRequest request)
         {
             if (_disposed) return Failure(request, SpawnFailureReason.PoolFailure, "Service is disposed.");
             SpawnFailureReason validation = ValidateRequest(request);
@@ -416,12 +473,12 @@ namespace Deucarian.WorldSpawning
             return new SpawnResult(true, SpawnFailureReason.None, id, instance, request);
         }
 
-        public int SpawnMany(SpawnRequest[] requests, int count, SpawnResult[] results)
+        public int SpawnMany(WorldSpawnRequest[] requests, int count, SpawnResult[] results)
         {
             if (requests == null) throw new ArgumentNullException(nameof(requests));
             if (results == null) throw new ArgumentNullException(nameof(results));
             if (count < 0 || count > requests.Length || count > results.Length) throw new ArgumentOutOfRangeException(nameof(count));
-            Array.Sort(requests, 0, count, SpawnRequestSequenceComparer.Instance);
+            Array.Sort(requests, 0, count, WorldSpawnRequestSequenceComparer.Instance);
             for (int i = 0; i < count; i++) results[i] = Spawn(requests[i]);
             return count;
         }
@@ -483,31 +540,31 @@ namespace Deucarian.WorldSpawning
             return prefab == null ? SpawnFailureReason.InvalidPrefab : SpawnFailureReason.None;
         }
 
-        private static SpawnFailureReason ValidateRequest(SpawnRequest request)
+        private static SpawnFailureReason ValidateRequest(WorldSpawnRequest request)
         {
-            if (request.SpawnableId.IsEmpty || request.ChannelId.IsEmpty || request.GroupId.IsEmpty || request.WaveId.IsEmpty || request.EncounterId.IsEmpty) return SpawnFailureReason.InvalidRequest;
+            if (request.SpawnableId.IsEmpty || request.ChannelId.IsEmpty) return SpawnFailureReason.InvalidRequest;
             return SpawnFailureReason.None;
         }
 
-        private static SpawnResult Failure(SpawnRequest request, SpawnFailureReason reason, string message) => new SpawnResult(false, reason, default, null, request, message);
+        private static SpawnResult Failure(WorldSpawnRequest request, SpawnFailureReason reason, string message) => new SpawnResult(false, reason, default, null, request, message);
 
         private readonly struct ActiveRecord
         {
-            public ActiveRecord(SpawnInstanceId id, SpawnRequest request, GameObject instance) { Id = id; Request = request; Instance = instance; }
+            public ActiveRecord(SpawnInstanceId id, WorldSpawnRequest request, GameObject instance) { Id = id; Request = request; Instance = instance; }
             public SpawnInstanceId Id { get; }
-            public SpawnRequest Request { get; }
+            public WorldSpawnRequest Request { get; }
             public GameObject Instance { get; }
         }
 
-        private sealed class SpawnRequestSequenceComparer : IComparer<SpawnRequest>
+        private sealed class WorldSpawnRequestSequenceComparer : IComparer<WorldSpawnRequest>
         {
-            public static readonly SpawnRequestSequenceComparer Instance = new SpawnRequestSequenceComparer();
-            public int Compare(SpawnRequest x, SpawnRequest y)
+            public static readonly WorldSpawnRequestSequenceComparer Instance = new WorldSpawnRequestSequenceComparer();
+            public int Compare(WorldSpawnRequest x, WorldSpawnRequest y)
             {
                 int sequence = x.Sequence.CompareTo(y.Sequence);
                 if (sequence != 0) return sequence;
-                int wave = x.WaveId.CompareTo(y.WaveId);
-                return wave != 0 ? wave : x.GroupId.CompareTo(y.GroupId);
+                int channel = x.ChannelId.CompareTo(y.ChannelId);
+                return channel != 0 ? channel : x.SpawnableId.CompareTo(y.SpawnableId);
             }
         }
     }

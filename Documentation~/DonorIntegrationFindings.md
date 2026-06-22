@@ -15,10 +15,10 @@ Primary donor:
 
 ## Mapping Proof
 
-- donor enemy id such as `enemy.ghoul-runner` maps to `SpawnableId`
+- donor enemy id such as `enemy.ghoul-runner` maps to `WorldSpawnableId`
 - donor radial spawn logic maps to an `ISpawnPoseResolver`
 - donor default or override prefab maps to `ISpawnPrefabProvider`
-- one `SpawnRequest` creates one pooled instance
+- one `WorldSpawnRequest` creates one pooled instance
 - `Despawn` returns the instance to the pool
 
 ## Outside Package

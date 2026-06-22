@@ -1,5 +1,4 @@
 using System.Collections;
-using Deucarian.Encounters;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -13,13 +12,13 @@ namespace Deucarian.WorldSpawning.Tests
         {
             GameObject prefab = new GameObject("playmode-prefab");
             WorldSpawnService service = new WorldSpawnService(
-                new SpawnableCatalog(new[] { new SpawnableDefinition(new SpawnableId("enemy.playmode"), new GameObjectPrefabProvider(prefab), 1, 1) }),
-                new ChannelPoseResolver(new System.Collections.Generic.Dictionary<SpawnChannelId, SpawnPose>
+                new SpawnableCatalog(new[] { new SpawnableDefinition(new WorldSpawnableId("enemy.playmode"), new GameObjectPrefabProvider(prefab), 1, 1) }),
+                new ChannelPoseResolver(new System.Collections.Generic.Dictionary<WorldSpawnChannelId, SpawnPose>
                 {
-                    [new SpawnChannelId("channel.playmode")] = new SpawnPose(new Vector3(1, 2, 3), Quaternion.identity)
+                    [new WorldSpawnChannelId("channel.playmode")] = new SpawnPose(new Vector3(1, 2, 3), Quaternion.identity)
                 }));
             service.Warmup();
-            SpawnResult result = service.Spawn(new SpawnRequest(new EncounterId("encounter.playmode"), new WaveId("wave.playmode"), new SpawnGroupId("group.playmode"), new SpawnableId("enemy.playmode"), new SpawnChannelId("channel.playmode"), 0, 1, 0, 0));
+            SpawnResult result = service.Spawn(new WorldSpawnRequest(new WorldSpawnableId("enemy.playmode"), new WorldSpawnChannelId("channel.playmode"), 1));
             Assert.IsTrue(result.Succeeded);
             yield return null;
             Assert.IsTrue(result.Instance.activeSelf);

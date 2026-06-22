@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Deucarian.Encounters;
 using UnityEngine;
 
 namespace Deucarian.WorldSpawning.Samples
@@ -9,14 +8,14 @@ namespace Deucarian.WorldSpawning.Samples
     {
         public static void Run(GameObject prefab)
         {
-            SpawnableId spawnable = new SpawnableId("enemy.sample");
-            SpawnChannelId channel = new SpawnChannelId("lane.sample");
+            WorldSpawnableId spawnable = new WorldSpawnableId("enemy.sample");
+            WorldSpawnChannelId channel = new WorldSpawnChannelId("lane.sample");
             var service = new WorldSpawnService(
                 new SpawnableCatalog(new[] { new SpawnableDefinition(spawnable, new GameObjectPrefabProvider(prefab), 2, 8) }),
-                new ChannelPoseResolver(new Dictionary<SpawnChannelId, SpawnPose> { [channel] = new SpawnPose(Vector3.zero, Quaternion.identity) }));
+                new ChannelPoseResolver(new Dictionary<WorldSpawnChannelId, SpawnPose> { [channel] = new SpawnPose(Vector3.zero, Quaternion.identity) }));
 
             service.Warmup();
-            SpawnRequest request = new SpawnRequest(new EncounterId("encounter.sample"), new WaveId("wave.sample"), new SpawnGroupId("group.sample"), spawnable, channel, 0, 1, 0, 0);
+            WorldSpawnRequest request = new WorldSpawnRequest(spawnable, channel, 1, new WorldSpawnRequestContext("sample"));
             SpawnResult result = service.Spawn(request);
             if (!result.Succeeded)
             {
