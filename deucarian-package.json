@@ -1,0 +1,22 @@
+{
+  "packageId": "com.deucarian.world-spawning",
+  "displayName": "Deucarian World Spawning",
+  "ownedCapabilities": [],
+  "runtimeAssemblies": [
+    "Deucarian.WorldSpawning"
+  ],
+  "editorAssemblies": [],
+  "sampleAssemblies": [],
+  "testAssemblies": [
+    "Deucarian.WorldSpawning.PlayModeTests",
+    "Deucarian.WorldSpawning.Tests"
+  ],
+  "requiredDependencies": [
+    "com.deucarian.common",
+    "com.deucarian.gameplay-foundation"
+  ],
+  "optionalVersionDefinedDependencies": [],
+  "allowedDirectDebugCalls": [],
+  "allowedDirectUnityObjectLifetimeCalls": [],
+  "expectedSamplesRoot": "Samples~"
+}

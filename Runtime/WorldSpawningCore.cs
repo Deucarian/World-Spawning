@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Deucarian.Common;
 using Deucarian.GameplayFoundation;
 using UnityEngine;
 
@@ -323,9 +324,9 @@ namespace Deucarian.WorldSpawning
                 {
                     foreach (GameObject instance in bucket.AllInstances)
                     {
-                        if (instance != null) UnityEngine.Object.DestroyImmediate(instance);
+                        UnityObjectUtility.DestroySafely(instance);
                     }
-                    if (bucket.Root != null) UnityEngine.Object.DestroyImmediate(bucket.Root.gameObject);
+                    if (bucket.Root != null) UnityObjectUtility.DestroySafely(bucket.Root.gameObject);
                 }
                 bucket.Inactive.Clear();
                 bucket.AllInstances.Clear();
@@ -529,7 +530,7 @@ namespace Deucarian.WorldSpawning
             if (_disposed) return;
             Clear(true);
             _pool.Dispose();
-            if (_root != null) UnityEngine.Object.DestroyImmediate(_root.gameObject);
+            if (_root != null) UnityObjectUtility.DestroySafely(_root.gameObject);
             _disposed = true;
         }
 
