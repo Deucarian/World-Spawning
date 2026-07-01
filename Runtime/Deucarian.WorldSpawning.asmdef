@@ -2,6 +2,7 @@
   "name": "Deucarian.WorldSpawning",
   "rootNamespace": "Deucarian.WorldSpawning",
   "references": [
+    "Deucarian.Common",
     "Deucarian.GameplayFoundation"
   ],
   "includePlatforms": [],
