@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1 - 2026-07-17
+
+- Completed the playable sample contract and updated exact Common and Gameplay Foundation dependencies.
+
 ## 0.2.0 - 2026-06-22
 
 - Added generic `WorldSpawnRequest`, `WorldSpawnableId`, `WorldSpawnChannelId`, and `WorldSpawnRequestContext`.
