@@ -1,0 +1,16 @@
+{
+  "name": "Deucarian.WorldSpawning.Samples",
+  "rootNamespace": "Deucarian.WorldSpawning.Samples",
+  "references": [
+    "Deucarian.WorldSpawning"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
