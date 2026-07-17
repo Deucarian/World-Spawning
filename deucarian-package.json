@@ -1,12 +1,15 @@
 {
   "packageId": "com.deucarian.world-spawning",
   "displayName": "Deucarian World Spawning",
+  "samplePolicy": "playable-scene",
   "ownedCapabilities": [],
   "runtimeAssemblies": [
     "Deucarian.WorldSpawning"
   ],
   "editorAssemblies": [],
-  "sampleAssemblies": [],
+  "sampleAssemblies": [
+    "Deucarian.WorldSpawning.Samples"
+  ],
   "testAssemblies": [
     "Deucarian.WorldSpawning.PlayModeTests",
     "Deucarian.WorldSpawning.Tests"

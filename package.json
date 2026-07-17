@@ -1,6 +1,6 @@
 {
   "name": "com.deucarian.world-spawning",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "displayName": "Deucarian World Spawning",
   "description": "Generic Unity GameObject spawning for world spawn requests, prefab providers, pose resolvers, pooling, lifecycle, and diagnostics snapshots.",
   "unity": "6000.3",
@@ -13,8 +13,8 @@
   },
   "license": "MIT",
   "dependencies": {
-    "com.deucarian.common": "0.2.0",
-    "com.deucarian.gameplay-foundation": "0.1.0"
+    "com.deucarian.common": "0.2.1",
+    "com.deucarian.gameplay-foundation": "0.1.1"
   },
   "samples": [
     {
