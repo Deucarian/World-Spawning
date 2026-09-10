@@ -84,6 +84,39 @@ namespace Deucarian.WorldSpawning.Tests
         }
 
         [Test]
+        public void GameObjectPoolAdapter_EnforcesCapacityReusesInstancesAndDisposesIdempotently()
+        {
+            GameObject prefab = Prefab("direct-pool-prefab");
+            SpawnableDefinition definition = Def(EnemyA, prefab, 1, 1);
+            var pool = new GameObjectWorldSpawnPool();
+            try
+            {
+                pool.Warmup(definition, null);
+                SpawnPose pose = new SpawnPose(Vector3.right, Quaternion.identity);
+
+                Assert.IsTrue(pool.TrySpawn(definition, pose, out GameObject first, out SpawnFailureReason firstFailure));
+                Assert.AreEqual(SpawnFailureReason.None, firstFailure);
+                Assert.IsFalse(pool.TrySpawn(definition, pose, out GameObject exhausted, out SpawnFailureReason capacityFailure));
+                Assert.IsNull(exhausted);
+                Assert.AreEqual(SpawnFailureReason.CapacityExhausted, capacityFailure);
+
+                Assert.IsTrue(pool.TryDespawn(first, null, DespawnReason.Requested));
+                Assert.IsTrue(pool.TrySpawn(definition, pose, out GameObject reused, out SpawnFailureReason reuseFailure));
+                Assert.AreSame(first, reused);
+                Assert.AreEqual(SpawnFailureReason.None, reuseFailure);
+
+                pool.Dispose();
+                pool.Dispose();
+                Assert.AreEqual(0, pool.CreateSnapshots().Length);
+            }
+            finally
+            {
+                pool.Dispose();
+                UnityEngine.Object.DestroyImmediate(prefab);
+            }
+        }
+
+        [Test]
         public void DeterministicRequestOrder_MultipleSpawnablesAndChannels_AreTracked()
         {
             GameObject prefabA = Prefab("order-a");
