@@ -1,5 +1,15 @@
 # Deucarian World Spawning
 
+## Typed definition workflow
+
+SpawnTrigger selects a spawnable and a channel from typed dropdowns. WorldSpawnHost owns the pool and cleanup.
+
+Start with the [Definition Workflow walkthrough](Documentation~/DefinitionWorkflow.md).
+Import **Definition Workflow** in Package Manager for a configured sample scene
+and short caller scripts. Definitions can be edited as assets or editable C# declarations; generated keys
+work in code and Inspector dropdowns.
+
+
 For simple calls and setup, see [Simple usage](Documentation~/SimpleUsage.md).
 
 `com.deucarian.world-spawning` is a Unity-facing package that turns generic `WorldSpawnRequest` values into pooled runtime `GameObject` instances.

@@ -17,6 +17,9 @@ namespace Deucarian.WorldSpawning
             [Min(1)] public int maximumCapacity = 64;
         }
         [SerializeField] private Entry[] spawnables = Array.Empty<Entry>();
+        [SerializeField] private Unity.SpawnableDefinitionCatalog definitionCatalog;
+        [SerializeField] private Unity.SpawnChannelDefinitionCatalog channelCatalog;
+        private Dictionary<string, SpawnChannelDefinition> channels;
         private readonly DirectPoses poses = new DirectPoses();
         private WorldSpawnService service;
         private long sequence;
@@ -31,6 +34,17 @@ namespace Deucarian.WorldSpawning
         }
 
         public SpawnResult Spawn(SpawnableKey key, Vector3 position) => Spawn(key, position, Quaternion.identity);
+        public SpawnResult Spawn(SpawnableKey key, SpawnChannelKey channel)
+        {
+            if (channel == null) throw new ArgumentNullException(nameof(channel), "Select an existing spawn channel.");
+            if (channels == null)
+            {
+                channels = new Dictionary<string, SpawnChannelDefinition>(StringComparer.Ordinal);
+                foreach (var definition in (channelCatalog != null ? channelCatalog : Unity.SpawnChannelDefinitionCatalog.LoadProject()).CreateRuntimeDefinitions()) channels.Add(definition.Id.Value, definition);
+            }
+            if (!channels.TryGetValue(channel.Id, out var selected)) throw new InvalidOperationException("Spawn channel '" + channel.Id + "' is missing. Synchronize the channel definitions.");
+            return Spawn(key, transform.TransformPoint(selected.Position), transform.rotation * selected.Rotation);
+        }
         public SpawnResult Spawn(SpawnableKey key, Vector3 position, Quaternion rotation, Transform parent = null)
         {
             if (key == null) throw new ArgumentNullException(nameof(key), "Select a SpawnableKey or pass a named spawnable definition.");
@@ -47,6 +61,11 @@ namespace Deucarian.WorldSpawning
         {
             if (destroyed) throw new ObjectDisposedException(nameof(WorldSpawnHost));
             if (service != null) return;
+            if (definitionCatalog != null || spawnables.Length == 0)
+            {
+                var catalog = definitionCatalog != null ? definitionCatalog : Resources.Load<Unity.SpawnableDefinitionCatalog>(Unity.SpawnableDefinitionCatalog.ResourcePath);
+                if (catalog != null) { Configure(new SpawnableCatalog(catalog.CreateRuntimeDefinitions())); return; }
+            }
             var definitions = new List<SpawnableDefinition>();
             foreach (var entry in spawnables)
             {

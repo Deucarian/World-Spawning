@@ -1,0 +1,5 @@
+{
+  "name": "Deucarian.Samples.WorldSpawning.DefinitionDeclarations",
+  "references": ["Deucarian.Editor", "Deucarian.WorldSpawning.Editor"],
+  "includePlatforms": ["Editor"]
+}
