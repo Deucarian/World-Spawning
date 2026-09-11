@@ -11,7 +11,7 @@ namespace Deucarian.WorldSpawning
         [Serializable]
         private sealed class Entry
         {
-            public string id;
+            public SpawnableKey key;
             public GameObject prefab;
             [Min(0)] public int initialCapacity;
             [Min(1)] public int maximumCapacity = 64;
@@ -30,11 +30,12 @@ namespace Deucarian.WorldSpawning
             service = new WorldSpawnService(catalog, poses, rootName: name + " Pools");
         }
 
-        public SpawnResult Spawn(string id, Vector3 position) => Spawn(id, position, Quaternion.identity);
-        public SpawnResult Spawn(string id, Vector3 position, Quaternion rotation, Transform parent = null)
+        public SpawnResult Spawn(SpawnableKey key, Vector3 position) => Spawn(key, position, Quaternion.identity);
+        public SpawnResult Spawn(SpawnableKey key, Vector3 position, Quaternion rotation, Transform parent = null)
         {
+            if (key == null) throw new ArgumentNullException(nameof(key), "Select a SpawnableKey or pass a named spawnable definition.");
             EnsureConfigured();
-            var request = new WorldSpawnRequest(new WorldSpawnableId(id), new WorldSpawnChannelId("direct"), ++sequence);
+            var request = new WorldSpawnRequest(new WorldSpawnableId(key.Id), new WorldSpawnChannelId("direct"), ++sequence);
             poses.Values.Add(request.Sequence, new SpawnPose(position, rotation, parent));
             try { return service.Spawn(request); }
             finally { poses.Values.Remove(request.Sequence); }
@@ -49,8 +50,8 @@ namespace Deucarian.WorldSpawning
             var definitions = new List<SpawnableDefinition>();
             foreach (var entry in spawnables)
             {
-                if (entry == null || entry.prefab == null) throw new InvalidOperationException("Every spawn entry needs an ID and prefab.");
-                definitions.Add(new SpawnableDefinition(new WorldSpawnableId(entry.id),
+                if (entry == null || entry.key == null || entry.prefab == null) throw new InvalidOperationException("WorldSpawnHost '" + name + "' has an incomplete spawn entry. Select its SpawnableKey and assign its prefab in the Inspector.");
+                definitions.Add(new SpawnableDefinition(new WorldSpawnableId(entry.key.Id),
                     new GameObjectPrefabProvider(entry.prefab), entry.initialCapacity, entry.maximumCapacity));
             }
             Configure(new SpawnableCatalog(definitions));

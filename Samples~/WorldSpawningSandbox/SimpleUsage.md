@@ -4,6 +4,8 @@ Add WorldSpawnHost and configure its spawnable IDs, prefabs, initial capacities,
 
 Import the **Simple Usage** sample from Unity Package Manager. Its caller script is:
 
+Definition fields now use named, domain-specific keys. Select an existing definition from the Inspector dropdown or pass the same named key in code. Declare each project key once in a marked key set; ordinary caller methods do not accept raw IDs. Generated keys for asset-authored definitions require no asset reference in the caller. Owner-issued selection and row handles represent runtime instances.
+
 ```csharp
 using UnityEngine;
 
@@ -11,8 +13,10 @@ namespace Deucarian.WorldSpawning.Samples.SimpleUsage
 {
     public sealed class SimpleUsageExample : MonoBehaviour
     {
+        [SerializeField] private SpawnableKey goblin = Spawnables.Goblin;
+
         [SerializeField] private WorldSpawnHost world;
-        public void SpawnEnemy(Vector3 position) => world.Spawn("enemy.goblin", position);
+        public void SpawnEnemy(Vector3 position) => world.Spawn(goblin, position);
     }
 }
 ```
