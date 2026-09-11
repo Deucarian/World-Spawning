@@ -14,7 +14,8 @@
   "license": "MIT",
   "dependencies": {
     "com.deucarian.common": "0.2.1",
-    "com.deucarian.gameplay-foundation": "0.1.1"
+    "com.deucarian.gameplay-foundation": "0.1.1",
+    "com.deucarian.editor": "1.10.8"
   },
   "samples": [
     {

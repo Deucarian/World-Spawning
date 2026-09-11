@@ -6,7 +6,9 @@
   "runtimeAssemblies": [
     "Deucarian.WorldSpawning"
   ],
-  "editorAssemblies": [],
+  "editorAssemblies": [
+    "Deucarian.WorldSpawning.Editor"
+  ],
   "sampleAssemblies": [
     "Deucarian.WorldSpawning.Samples"
   ],
@@ -16,6 +18,7 @@
   ],
   "requiredDependencies": [
     "com.deucarian.common",
+    "com.deucarian.editor",
     "com.deucarian.gameplay-foundation"
   ],
   "optionalVersionDefinedDependencies": [],

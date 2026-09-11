@@ -1,5 +1,7 @@
 # Deucarian World Spawning
 
+For simple calls and setup, see [Simple usage](Documentation~/SimpleUsage.md).
+
 `com.deucarian.world-spawning` is a Unity-facing package that turns generic `WorldSpawnRequest` values into pooled runtime `GameObject` instances.
 
 As of `0.2.0`, Encounters is one possible source of spawn requests, not a runtime dependency. Application or test adapters convert Encounter `SpawnRequest` values into `WorldSpawnRequest` values.
