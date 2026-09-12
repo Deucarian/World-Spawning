@@ -10,7 +10,9 @@
     "Deucarian.WorldSpawning.Editor"
   ],
   "sampleAssemblies": [
-    "Deucarian.WorldSpawning.Samples"
+    "Deucarian.Samples.WorldSpawning.DefinitionDeclarations",
+    "Deucarian.WorldSpawning.Samples",
+    "Deucarian.WorldSpawning.Samples.DefinitionWorkflow"
   ],
   "testAssemblies": [
     "Deucarian.WorldSpawning.PlayModeTests",
@@ -18,8 +20,8 @@
   ],
   "requiredDependencies": [
     "com.deucarian.common",
-    "com.deucarian.editor",
-    "com.deucarian.gameplay-foundation"
+    "com.deucarian.gameplay-foundation",
+    "com.deucarian.editor"
   ],
   "optionalVersionDefinedDependencies": [],
   "allowedDirectDebugCalls": [],

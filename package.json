@@ -1,6 +1,6 @@
 {
   "name": "com.deucarian.world-spawning",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "displayName": "Deucarian World Spawning",
   "description": "Generic Unity GameObject spawning for world spawn requests, prefab providers, pose resolvers, pooling, lifecycle, and diagnostics snapshots.",
   "unity": "6000.3",
@@ -14,14 +14,19 @@
   "license": "MIT",
   "dependencies": {
     "com.deucarian.common": "0.2.1",
-    "com.deucarian.gameplay-foundation": "0.1.1",
-    "com.deucarian.editor": "1.10.8"
+    "com.deucarian.gameplay-foundation": "0.2.0",
+    "com.deucarian.editor": "1.12.0"
   },
   "samples": [
     {
       "displayName": "World Spawning Sandbox",
       "description": "Small Unity-facing sample showing generic world spawn requests resolved through channels into pooled GameObjects.",
       "path": "Samples~/WorldSpawningSandbox"
+    },
+    {
+      "displayName": "Definition Workflow",
+      "description": "Playable scene with typed C# calls, Inspector components, editable definitions and shared host ownership.",
+      "path": "Samples~/DefinitionWorkflow"
     }
   ]
 }

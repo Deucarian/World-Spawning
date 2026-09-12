@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2595e7a0aa68e644293825d2bccc0438, type: 3}
+  m_Name: Definition_SpawningSampleCube
+  m_EditorClassIdentifier: Deucarian.WorldSpawning::Deucarian.WorldSpawning.Unity.SpawnableDefinitionAsset
+  id: 768e3e0291264337be5b85bbf91c4235
+  displayName: SpawningSampleCube
+  prefab: {fileID: 1735556042676023359, guid: 4f80075091790b44aae90421bc3de199, type: 3}
+  initialCapacity: 0
+  maximumCapacity: 64
