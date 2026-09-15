@@ -1,0 +1,6 @@
+{
+  "name": "Deucarian.WorldSpawning.Samples.DefinitionWorkflow",
+  "references": [
+    "Deucarian.WorldSpawning"
+  ]
+}
